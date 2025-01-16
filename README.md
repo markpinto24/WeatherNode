@@ -1,33 +1,22 @@
-# weather-dashboard
+🌤️ WeatherNode - A Weather Forecasting Dashboard
 
-This template should help get you started developing with Vue 3 in Vite.
+A sleek and interactive weather dashboard built to provide accurate and real-time weather updates for locations worldwide. Designed with a user-friendly interface and responsive layout, it ensures seamless access across all devices.
 
-## Recommended IDE Setup
+Features:
+🌍 Search by Location: Instantly get weather details for any city or region.
+🌡️ Current Conditions: Displays temperature, humidity, wind speed, and uvindex.
+📅 Forecasts: Hourly updates and a 7-day weather outlook.
+Technologies Used:
+Frontend: [HTML, CSS, JavaScript, Tailwind CSS , Vue, Typescript]
+Backend: [API Integration (OpenWeather API,Tommorrow.io API, MapBox API)]
+Others: [Responsive Design and Dynamic Updates]
+Get Started:
+Clone the repository:
+git clone https://github.com/username/weather-dashboard.git
+Navigate to the project directory:
+cd weather-dashboard
+Open the index.html file in your browser to explore.
+🚀 Contribute:
+Feel free to submit issues or pull requests to improve the dashboard!
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-npm run dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
+📌 Live Demo: [https://weatherly-node.vercel.app/]
