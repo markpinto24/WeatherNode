@@ -1,10 +1,11 @@
 <template>
-  <div class="flex flex-col flex-1 items-center">
+  <div class="flex flex-col flex-1 items-center -z-0">
     <div v-if="isLoading" class="flex items-center h-screen">
       <h1 class="text-white text-4xl">Weather Data is Loading..</h1>
     </div>
-    <!-- NavBar -->
+
     <section v-else class="w-full flex flex-col flex-1 items-center">
+      <!-- Preview Banner -->
       <div class="w-full">
         <div
           v-if="route.query.preview"
@@ -15,6 +16,7 @@
             {{ route.params.state }}
           </p>
         </div>
+
         <!-- Weather Overview -->
         <div class="max-w-screen flex flex-col items-center text-white py-12">
           <h1 class="text-4xl mb-2">
@@ -37,36 +39,34 @@
           </div>
           <div class="flex flex-row gap-6 mt-10">
             <p class="text-center text-white mb-1">
-              Humidity : {{ dailyWeatherData.humidity }}
+              Humidity: {{ dailyWeatherData.humidity }}
             </p>
             <p class="text-center text-white mb-1">
-              UV Index : {{ dailyWeatherData.uvIndex }}
+              UV Index: {{ dailyWeatherData.uvIndex }}
             </p>
             <p class="text-center text-white mb-1">
-              Wind Speed : {{ dailyWeatherData.windSpeed }}
+              Wind Speed: {{ dailyWeatherData.windSpeed }}
             </p>
           </div>
         </div>
       </div>
 
       <!-- Hourly Weather -->
-      <div class="max-w-screen-md overflow-x-h w-full py-12">
-        <div
-          class="mx-8 text-white flex flex-col justify-center items-center gap-y-10"
-        >
-          <h2 class="mb-4 text-2xl">3 Hourly Forecast</h2>
-          <div class="flex gap-14">
+      <div class="max-w-screen-md w-full">
+        <h2 class="mb-4 text-2xl text-white text-center">3 Hourly Forecast</h2>
+        <div class="relative overflow-x-auto md:overflow-x-hidden">
+          <div class="flex py-12 px-8 min-w-max">
             <div
               v-for="hourData in hourlyWeatherData"
               :key="hourData.dt"
-              class="flex flex-col gap-4 items-center"
+              class="flex flex-col gap-4 items-center mx-7 first:ml-0 last:mr-0"
             >
-              <p class="whitespace-nowrap text-md">
+              <p class="whitespace-nowrap text-md text-white">
                 {{
                   new Date(hourData.dt * 1000).toLocaleTimeString("en-IN", {
                     hour: "numeric",
-                    hour12: true, // For AM/PM format
-                    timeZone: "Asia/Kolkata", // Ensures the time is in IST
+                    hour12: true,
+                    timeZone: "Asia/Kolkata",
                   })
                 }}
               </p>
@@ -75,7 +75,9 @@
                 :src="`http://openweathermap.org/img/wn/${hourData.weather[0].icon}@2x.png`"
                 alt=""
               />
-              <p class="text-xl">{{ Math.round(hourData.main.temp) }}&deg;</p>
+              <p class="text-xl text-white">
+                {{ Math.round(hourData.main.temp) }}&deg;
+              </p>
             </div>
           </div>
         </div>
@@ -121,14 +123,12 @@ import { useRoute } from "vue-router";
 import { ref } from "vue";
 
 const route = useRoute();
-var isLoading = ref(true); // Loading State
-let current_temp = ref(null); // Current Temperature
-let formattedIST = ref(""); // Formatted IST Time
-let weatherData = null; // Weather Data
-let dailyWeatherData = {}; // Daily Weather Data
-let hourlyWeatherData = []; // Hourly Weather Data
-let forecastWeatherData = []; // Forecast Weather Data
-const currentDateString = new Date().toISOString().split("T")[0]; // Current Date String
+const isLoading = ref(true);
+const current_temp = ref(null);
+const formattedIST = ref("");
+const dailyWeatherData = ref({});
+const hourlyWeatherData = ref([]);
+const forecastWeatherData = ref([]);
 
 // Fetch Weather Data from Tomorrow.io API
 const getWeatherData = async () => {
@@ -139,31 +139,31 @@ const getWeatherData = async () => {
       }&apikey=${import.meta.env.VITE_TOMORROWIO_TOKEN}`
     );
 
-    weatherData = response.data; // Assign API response to weatherData
+    const weatherData = response.data;
+    localStorage.setItem("WeatherData", JSON.stringify(weatherData));
 
-    localStorage.setItem("WeatherData", JSON.stringify(weatherData)); // Cache Weather Data
-
-    // Extract the current temperature
+    // Extract and set current temperature
     current_temp.value = Math.round(
       weatherData.timelines.daily[0].values.temperatureApparentAvg
     );
 
-    dailyWeatherData.temp = current_temp; // Assign Current Temperature
-    dailyWeatherData.humidity =
-      weatherData.timelines.daily[0].values.humidityAvg; // Assign Humidity
-    dailyWeatherData.uvIndex = weatherData.timelines.daily[0].values.uvIndexAvg; // Assign UV Index
-    dailyWeatherData.windSpeed =
-      weatherData.timelines.daily[0].values.windSpeedAvg; // Assign Wind Speed
-    dailyWeatherData.weatherCode =
-      (weatherData.timelines.daily[0].values.weatherCodeMax +
-        weatherData.timelines.daily[0].values.weatherCodeMin) /
-      2; // Assign Weather Code
+    // Update daily weather data
+    dailyWeatherData.value = {
+      temp: current_temp.value,
+      humidity: weatherData.timelines.daily[0].values.humidityAvg,
+      uvIndex: weatherData.timelines.daily[0].values.uvIndexAvg,
+      windSpeed: weatherData.timelines.daily[0].values.windSpeedAvg,
+      weatherCode:
+        (weatherData.timelines.daily[0].values.weatherCodeMax +
+          weatherData.timelines.daily[0].values.weatherCodeMin) /
+        2,
+    };
 
-    // Parse the GMT time and convert to IST
-    const gmtTime = response.headers.date; // Get GMT Time
-    const dateInGMT = new Date(gmtTime); // Convert GMT Time to Date
+    // Format IST time
+    const gmtTime = response.headers.date;
+    const dateInGMT = new Date(gmtTime);
     const options = {
-      timeZone: "Asia/Kolkata", // Set Time Zone to IST
+      timeZone: "Asia/Kolkata",
       year: "numeric",
       month: "short",
       day: "2-digit",
@@ -172,86 +172,88 @@ const getWeatherData = async () => {
       second: "2-digit",
       hour12: true,
     };
-    formattedIST.value = dateInGMT.toLocaleString("en-US", options); // Format IST Time
-
-    // //console.log("IST Time:", formattedIST.value); // Log IST Time in //console
+    formattedIST.value = dateInGMT.toLocaleString("en-US", options);
   } catch (err) {
-    // //console.log("Weather API Error:", err); // Log Error
-  } finally {
-    isLoading.value = false; // Stop Loading
+    console.error("Weather API Error:", err);
   }
 };
 
 // Fetch Weather Data from OpenWeatherMap API
 const getOpenWeatherData = async () => {
-  const openWeatherData = await axios.get(
-    `https://api.openweathermap.org/data/2.5/weather?q=${
-      route.params.city
-    }&appid=${import.meta.env.VITE_OPENWEATHER_TOKEN}`
-  );
+  try {
+    const [currentWeather, hourlyWeather, dailyForecast] = await Promise.all([
+      axios.get(
+        `https://api.openweathermap.org/data/2.5/weather?q=${
+          route.params.city
+        }&appid=${import.meta.env.VITE_OPENWEATHER_TOKEN}`
+      ),
+      axios.get(
+        `https://api.openweathermap.org/data/2.5/forecast?q=${
+          route.params.city
+        }&appid=${import.meta.env.VITE_OPENWEATHER_TOKEN}&units=metric`
+      ),
+      axios.get(
+        `https://api.openweathermap.org/data/2.5/forecast/daily?q=${
+          route.params.city
+        }&cnt=7&appid=${import.meta.env.VITE_OPENWEATHER_TOKEN}&units=metric`
+      ),
+    ]);
 
-  const hourlyWeatherDataResponse = await axios.get(`https://api.openweathermap.org/data/2.5/forecast?q=${
-    route.params.city
-  }&appid=${import.meta.env.VITE_OPENWEATHER_TOKEN}&units=metric
-`);
+    hourlyWeatherData.value = hourlyWeather.data.list.slice(0, 8);
+    forecastWeatherData.value = dailyForecast.data.list;
 
-  const daysForecastDataResponse = await axios.get(
-    `https://api.openweathermap.org/data/2.5/forecast/daily?q=${
-      route.params.city
-    }&cnt=7&appid=${import.meta.env.VITE_OPENWEATHER_TOKEN}&units=metric`
-  );
-
-  hourlyWeatherData = hourlyWeatherDataResponse.data.list.slice(0, 8);
-
-  //console.log(daysForecastDataResponse.data.list);
-  forecastWeatherData = daysForecastDataResponse.data.list; // Assign Forecast Weather Data
-
-  dailyWeatherData.code = openWeatherData.data.weather[0].icon; // Assign Weather Code
-  dailyWeatherData.weather_name = openWeatherData.data.weather[0].main;
-  isLoading.value = false; // Stop Loading
+    dailyWeatherData.value = {
+      ...dailyWeatherData.value,
+      code: currentWeather.data.weather[0].icon,
+      weather_name: currentWeather.data.weather[0].main,
+    };
+  } catch (err) {
+    console.error("OpenWeather API Error:", err);
+  } finally {
+    isLoading.value = false;
+  }
 };
 
-// Check localStorage first
-const cachedData = localStorage.getItem("WeatherData");
-getOpenWeatherData();
+// Initialize data on component mount
+const initializeWeatherData = async () => {
+  const cachedData = localStorage.getItem("WeatherData");
 
-if (cachedData) {
-  //console.log("Using cached weather data");
-  weatherData = JSON.parse(cachedData);
+  if (cachedData) {
+    const weatherData = JSON.parse(cachedData);
 
-  //console.log(weatherData);
+    current_temp.value = Math.round(
+      weatherData.timelines.daily[0].values.temperatureApparentAvg
+    );
 
-  // Populate reactive variables from cached data
-  current_temp = Math.round(
-    weatherData.timelines.daily[0].values.temperatureApparentAvg
-  );
+    dailyWeatherData.value = {
+      temp: current_temp.value,
+      humidity: weatherData.timelines.daily[0].values.humidityAvg,
+      uvIndex: weatherData.timelines.daily[0].values.uvIndexAvg,
+      windSpeed: weatherData.timelines.daily[0].values.windSpeedAvg,
+      weatherCode:
+        (weatherData.timelines.daily[0].values.weatherCodeMax +
+          weatherData.timelines.daily[0].values.weatherCodeMin) /
+        2,
+    };
 
-  dailyWeatherData.temp = current_temp; // Assign Current Temperature
-  dailyWeatherData.humidity = weatherData.timelines.daily[0].values.humidityAvg; // Assign Humidity
-  dailyWeatherData.uvIndex = weatherData.timelines.daily[0].values.uvIndexAvg; // Assign UV Index
-  dailyWeatherData.windSpeed =
-    weatherData.timelines.daily[0].values.windSpeedAvg; // Assign Wind Speed
-  dailyWeatherData.weatherCode =
-    (weatherData.timelines.daily[0].values.weatherCodeMax +
-      weatherData.timelines.daily[0].values.weatherCodeMin) /
-    2; // Assign Weather Code
+    formattedIST.value = new Date(
+      weatherData.timelines.minutely[0].time
+    ).toLocaleString("en-US", {
+      timeZone: "Asia/Kolkata",
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: true,
+    });
+  } else {
+    await getWeatherData();
+  }
 
-  formattedIST.value = new Date(
-    weatherData.timelines.minutely[0].time
-  ).toLocaleString("en-US", {
-    timeZone: "Asia/Kolkata", // Set Time Zone to IST
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: true,
-  });
+  await getOpenWeatherData();
+};
 
-  // Stop loading if using cached data
-} else {
-  //console.log("No cached data, fetching from API...");
-  getWeatherData();
-}
+initializeWeatherData();
 </script>
