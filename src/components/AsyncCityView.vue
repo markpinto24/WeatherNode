@@ -83,14 +83,14 @@
 
       <!-- Weekly Weather -->
       <div class="max-w-screen-md w-full py-12">
-        <div class="mx-8 text-white">
+        <div class="mx-8 text-white flex flex-col space-y-10">
           <h2 class="mb-4 text-2xl text-center">7 Day Forecast</h2>
           <div
             v-for="day in forecastWeatherData"
             :key="day.dt"
-            class="flex items-center space-y-10"
+            class="flex items-center px-10"
           >
-            <p class="flex-1 text-center">
+            <p class="flex-1 text-start">
               {{
                 new Date(day.dt * 1000).toLocaleDateString("en-IN", {
                   weekday: "long",
@@ -98,19 +98,15 @@
               }}
             </p>
             <img
-              class="w-[50px] h-[50px] object-cover"
+              class="w-[50px] h-[50px] object-cover mt-0"
               :src="`http://openweathermap.org/img/wn/${day.weather[0].icon}@2x.png`"
               alt=""
             />
-            <div class="flex flex-col gap-2 flex-1 justify-center items-center">
-              <div class="flex space-x-5">
-                <p>HT: {{ Math.round(day.temp.max) }}</p>
-                <p>LT: {{ Math.round(day.temp.min) }}</p>
-              </div>
-              <div class="flex space-x-5">
-                <p>RH: {{ Math.round(day.humidity) }}</p>
-                <p>WS: {{ Math.round(day.speed) }}</p>
-              </div>
+            <div class="flex gap-2 flex-1 justify-end items-center">
+              <p>HT: {{ Math.round(day.temp.max) }}</p>
+              <p>LT: {{ Math.round(day.temp.min) }}</p>
+              <p>RH: {{ Math.round(day.humidity) }}</p>
+              <p>WS: {{ Math.round(day.speed) }}</p>
             </div>
           </div>
         </div>
@@ -205,9 +201,7 @@ const getOpenWeatherData = async () => {
     }&cnt=7&appid=${import.meta.env.VITE_OPENWEATHER_TOKEN}&units=metric`
   );
 
-  hourlyWeatherData = hourlyWeatherDataResponse.data.list.filter((data) =>
-    data.dt_txt.startsWith(currentDateString)
-  );
+  hourlyWeatherData = hourlyWeatherDataResponse.data.list.slice(0, 8);
 
   //console.log(daysForecastDataResponse.data.list);
   forecastWeatherData = daysForecastDataResponse.data.list; // Assign Forecast Weather Data
